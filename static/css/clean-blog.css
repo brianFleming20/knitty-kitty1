@@ -38,6 +38,12 @@ a:focus, a:hover {
   color: #0085A1;
 }
 
+.actions {
+    padding-top: 20px;
+    font-size: 3em;
+    vertical-align: middle;
+}
+
 blockquote {
   font-style: italic;
   color: #868e96;
