@@ -1,16 +1,17 @@
 {% include "header.html" %}
 
   <!-- Page Header -->
-  <header class="masthead" style="background-image: url('static/img/background6.png'); padding-top: 300px;">
+  <header class="masthead" style="background-image: url('static/img/background6.png');">
     <div class="overlay"></div>
     <div class="container">
       <div class="row">
         <div class="col-lg-8 col-md-10 mx-auto">
           <div class="site-heading">
-            <h1>Knitty-Kitty Blog</h1>
+            <h1>Knitty-Kitty</h1><br>
+            <h1>Creations</h1>
             <span class="subheading">Giving wood the needle!</span>
             <span class="actions">
-              <a href="#header"><i class="button fa-regular fa-circle-arrow-down">Continue</i></a>
+              <a href="#show-me"><i class="button fa-regular fa-circle-arrow-down scrolly">Continue</i></a>
             </span>
           </div>
         </div>
@@ -20,41 +21,34 @@
 
 
   <!-- Main Content -->
-  <div class="container" id="header">
-    <div class="row">
-      <div class="col-lg-8 col-md-10 mx-auto">
-        {% for post in all_posts %}
-        <div class="post-preview">
-          <a href="{{ url_for('show_post', post_id=post.id) }}">
-            <h2 class="post-title">
-              {{post.title}}
-            </h2>
-            <h3 class="post-subtitle">
-              {{post.subtitle}}
-            </h3>
-          </a>
-          <p class="post-meta">Posted by
-            <a href="#">{{post.author.name}}</a>
-            on {{post.date}}
+
+      <div class="container">
+          <div class="clearfix">
+              {% if current_user.id == 1: %}
+              <a class="btn btn-primary float-right" href="{{url_for('add_new_post')}}">Create New Post</a>
+              {% endif %}
+            </div>
+          <br>
+
+     <div class="row row-cols-1 row-cols-md-3 g-4" id="show-me">
+
+         {% for post in all_posts %}
+      <div class="card">
+          <a href="{{ url_for('show_post', post_id=post.id) }}" style="padding: 10px 10px 10px 10px;"><img class="card-img-top" style="height: 300px;" src="{{ post.img_url }}" alt="Card image cap"></a>
+<!--        <img class="card-img-top" style="padding: 10px 10px 10px 10px; height: 300px;" src="{{ post.img_url }}" alt="Card image cap">-->
+        <div class="card-body">
+          <h5 class="card-title">{{ post.title }}
             {% if current_user.id == 1: %}
             <a href="{{url_for('delete_post', post_id=post.id) }}">✘</a>
-            {% endif %}
-          </p>
-        </div>
-        <hr>
-        {% endfor %}
-
-
-        <!-- New Post -->
-        <div class="clearfix">
-          {% if current_user.id == 1: %}
-          <a class="btn btn-primary float-right" href="{{url_for('add_new_post')}}">Create New Post</a>
-          {% endif %}
+            {% endif %} </h5>
+          <p class="card-text">{{ post.description }}</p>
+          <p class="card-text"><small class="text-muted">{{ post.date }}</small></p>
+            <a href="#" class="btn btn-primary">Select</a>
         </div>
       </div>
+      {% endfor %}
     </div>
-  </div>
-
+      </div>
   <hr>
 
 {% include "footer.html" %}

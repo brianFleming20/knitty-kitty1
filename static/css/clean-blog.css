@@ -70,6 +70,10 @@ content p {
     color:red;
 }
 
+.image{
+    width: 100px;
+}
+
 ::-moz-selection {
   color: #fff;
   background: #0085A1;
@@ -269,7 +273,7 @@ header.masthead .overlay {
 header.masthead .page-heading,
 header.masthead .post-heading,
 header.masthead .site-heading {
-  padding: 200px 0 150px;
+  padding: 50px 0 50px;
   color: white;
 }
 
@@ -383,6 +387,11 @@ header.masthead .post-heading .meta a {
   color: #0085A1;
 }
 
+.post-preview > .post-meta > img {
+    width: 50px;
+    border-radius: 50%;
+}
+
 @media only screen and (min-width: 768px) {
   .post-preview > a > .post-title {
     font-size: 36px;
@@ -488,4 +497,10 @@ footer .copyright {
 .btn-lg {
   font-size: 16px;
   padding: 25px 35px;
+}
+
+.container > .card-header-img {
+  background-color: #cf0000;
+  /* padding: 40px 20px 40px 20px; */
+  padding: 10% 10% 10% 10%
 }
