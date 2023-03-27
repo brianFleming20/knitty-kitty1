@@ -11,7 +11,9 @@
             <h1>Creations</h1>
             <span class="subheading">Giving wood the needle!</span>
             <span class="actions">
-              <a href="#show-me"><i class="button fa-regular fa-circle-arrow-down scrolly">Continue</i></a>
+                <br>
+              <a href="#show-me"><i class="fa fa-arrow-circle-down fa-3x" aria-hidden="true"></i></a>
+
             </span>
           </div>
         </div>
@@ -27,28 +29,44 @@
               {% if current_user.id == 1: %}
               <a class="btn btn-primary float-right" href="{{url_for('add_new_post')}}">Create New Post</a>
               {% endif %}
-            </div>
+          </div>
           <br>
 
-     <div class="row row-cols-1 row-cols-md-3 g-4" id="show-me">
+          <div class="row row-cols-1 row-cols-md-3 g-4" id="show-me">
 
-         {% for post in all_posts %}
-      <div class="card">
-          <a href="{{ url_for('show_post', post_id=post.id) }}" style="padding: 10px 10px 10px 10px;"><img class="card-img-top" style="height: 300px;" src="{{ post.img_url }}" alt="Card image cap"></a>
+            {% for post in all_posts %}
+            <div class="card">
+            <a href="{{ url_for('show_post', post_id=post.id) }}" style="padding: 10px 10px 0 10px;"><img class="card-img-top" style="width: 300px;" src="{{ post.img_url }}" alt="Card image cap"></a>
 <!--        <img class="card-img-top" style="padding: 10px 10px 10px 10px; height: 300px;" src="{{ post.img_url }}" alt="Card image cap">-->
-        <div class="card-body">
-          <h5 class="card-title">{{ post.title }}
-            {% if current_user.id == 1: %}
-            <a href="{{url_for('delete_post', post_id=post.id) }}">✘</a>
-            {% endif %} </h5>
-          <p class="card-text">{{ post.description }}</p>
-          <p class="card-text"><small class="text-muted">{{ post.date }}</small></p>
-            <a href="#" class="btn btn-primary">Select</a>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ post.title }}
+                    {% if current_user.id == 1: %}
+                    <a href="{{url_for('delete_post', post_id=post.id) }}">✘</a>
+                    {% endif %} </h5>
+                    <p class="card-text">{{ post.description }}</p>
+                    <p class="card-text"><small class="text-muted">{{ post.date }}</small></p>
+                    <p class="card-text"><small class="text-muted">Price - {{ post.price }}</small></p>
+<!--                    <input type="submit" value="Select" style="background-color: #19A7CE;" onclick="myfunction()">-->
+<!--                    <label for="qty">Quantity</label>-->
+<!--                    <select name="quantity" id="qty">-->
+<!--                      <option value="1">1</option>-->
+<!--                      <option value="2">2</option>-->
+<!--                      <option value="3">3</option>-->
+<!--                      <option value="4">4</option>-->
+<!--                      <option value="5">5</option>-->
+<!--                    </select>-->
+<!--                    <script>-->
+<!--                        function myfunction() {-->
+<!--                        window.location.href="{{ url_for('basket', post_id=post.id) }}";-->
+<!--                        }-->
+<!--                    </script>-->
+                </div>
+            </div>
+            {% endfor %}
+          </div>
       </div>
   <hr>
+
+
 
 {% include "footer.html" %}
