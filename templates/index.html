@@ -11,7 +11,9 @@
             <h1>Creations</h1>
             <span class="subheading">Giving wood the needle!</span>
             <span class="actions">
-              <a href="#show-me"><i class="button fa-regular fa-circle-arrow-down scrolly">Continue</i></a>
+                <br>
+              <a href="#show-me"><i class="fa fa-arrow-circle-down fa-3x" aria-hidden="true"></i></a>
+
             </span>
           </div>
         </div>
@@ -43,12 +45,14 @@
             {% endif %} </h5>
           <p class="card-text">{{ post.description }}</p>
           <p class="card-text"><small class="text-muted">{{ post.date }}</small></p>
-            <a href="#" class="btn btn-primary">Select</a>
+            <a href="{{ url_for('basket', post_id=post.id) }}" class="btn btn-primary">Select</a>
         </div>
       </div>
       {% endfor %}
     </div>
       </div>
   <hr>
+
+
 
 {% include "footer.html" %}

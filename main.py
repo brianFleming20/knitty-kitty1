@@ -109,7 +109,8 @@ class basket(db.Model):
     __tablename__ = "basket"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("Users.id"))
-    item_id = db.Column(db.Integer, db.ForeignKey("kitty_posts.id"))
+    item_id = db.Column(db.String)
+
 
 
 db.create_all()
@@ -134,6 +135,7 @@ class CreatePostForm(FlaskForm):
     description = StringField("Description", validators=[DataRequired()])
     img_url = StringField("Image URL", validators=[DataRequired()])
     author = StringField("Author", validators=[DataRequired()])
+    price = StringField("Price", validators=[DataRequired()])
     body = CKEditorField("Item Content", validators=[DataRequired()])
     submit = SubmitField("Make new post")
 
@@ -270,6 +272,13 @@ def edit_post(post_id):
         return redirect(url_for("show_post", post_id=post.id))
 
     return render_template("make-post.html", form=edit_form, current_user=current_user, is_edit=True)
+
+
+@app.route("/basket/<int:post_id>", methods=["POST", "GET"])
+def basket(post_id):
+    requested_post = KittyPost.query.get(post_id)
+
+    return render_template("basket.html", current_user=current_user, post=requested_post)
 
 
 @app.route("/delete/<int:post_id>")
