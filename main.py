@@ -1,3 +1,4 @@
+import requests
 from flask import Flask, render_template, redirect, url_for, flash, abort, request
 from flask_wtf import FlaskForm
 from flask_bootstrap import Bootstrap
@@ -11,7 +12,8 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, URL
 from functools import wraps
 from forms import CreatePostForm
-from flask_mail import Mail, Message
+import os
+from dotenv import load_dotenv, find_dotenv
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
@@ -23,15 +25,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///kitty-sales.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-app.config['MAIL_SERVER']='smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = 'knittykittyco@gmail.com'
-app.config['MAIL_PASSWORD'] = '*****'
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-# create dotenv for email and password
-
-mail = Mail(app)
+load_dotenv()
+private_password = os.getenv("PASSWORD")
+print(private_password)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -309,15 +305,12 @@ def edit_post(post_id):
 
 @app.route("/basket/<int:post_id>", methods=["POST", "GET"])
 def basket(post_id):
+    print(post_id)
+
     requested_post = KittyPost.query.get(post_id)
     user_basket.append(requested_post)
-    print(user_basket)
 
-    item = {
-        "basket_item": requested_post.id
-    }
-
-    return render_template("basket.html", current_user=current_user, post=requested_post)
+    return render_template("basket.html", current_user=current_user, post=user_basket)
 
 
 @app.route("/delete/<int:post_id>")

@@ -21,6 +21,7 @@
       <h5>Logged in as {{ current_user.name }}</h5>
      </div>
       <hr><br>
+
       <table class="table table-bordered">
         <thead>
           <tr>
@@ -32,17 +33,18 @@
             <th scope="col">Price</th>
           </tr>
         </thead>
-
+        {% for item in post %}
         <tbody>
           <tr>
             <td><a href="{{ url_for('show_post', post_id=post.id) }}" style="padding: 10px 10px 30px 10px;"><img alt="Card image cap" src="{{ post.img_url }}" style="height: 50px;"></a></td>
             <td>{{ post.title }}</td>
             <td>{{ post.make_days }} days</td>
             <td>2</td>
-            <td>£25</td>
+            <td>£{{ post.price }}</td>
             <td>£50</td>
           </tr>
         </tbody>
+        {% endfor %}
       </table>
       <div>
         <a href="{{ url_for('get_all_posts') }}" class="btn btn-primary">Continue selecting</a>
