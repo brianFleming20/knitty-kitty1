@@ -310,7 +310,6 @@ def basket(post_id):
     requested_post = KittyPost.query.get(post_id)
     user_basket.append(requested_post)
     print(user_basket)
-
     return render_template("basket.html", current_user=current_user, posts=user_basket, cart=items)
 
 
