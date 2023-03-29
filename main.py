@@ -1,4 +1,4 @@
-import requests
+
 from flask import Flask, render_template, redirect, url_for, flash, abort, request
 from flask_wtf import FlaskForm
 from flask_bootstrap import Bootstrap
@@ -13,7 +13,9 @@ from wtforms.validators import DataRequired, URL
 from functools import wraps
 from forms import CreatePostForm
 import os
-from dotenv import load_dotenv, find_dotenv
+
+from dotenv import load_dotenv
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
@@ -25,9 +27,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///kitty-sales.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+
 load_dotenv()
 private_password = os.getenv("PASSWORD")
 print(private_password)
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -167,8 +171,10 @@ class CommentForm(FlaskForm):
 def get_all_posts():
     posts = KittyPost.query.all()
 
+    items = len(user_basket)
     # data = request.form.get('ckeditor')
-    return render_template("index.html", all_posts=posts, current_user=current_user)
+    return render_template("index.html", all_posts=posts, current_user=current_user, cart=items)
+
 
 
 @app.route('/register', methods=["POST", "GET"])
@@ -219,6 +225,7 @@ def logout():
 
 @app.route("/post/<int:post_id>", methods=["POST", "GET"])
 def show_post(post_id):
+    items = len(user_basket)
     comment_form = CommentForm()
     requested_post = KittyPost.query.get(post_id)
     # comments = requested_post.comment
@@ -234,7 +241,7 @@ def show_post(post_id):
         db.session.add(new_comment)
         db.session.commit()
         return redirect(url_for("show_post", post_id=post_id))
-    return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form)
+    return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form, cart=items)
 
 
 @app.route("/about")
@@ -251,6 +258,7 @@ def contact():
 @app.route("/new-post", methods=["POST", "GET"])
 @admin_only
 def add_new_post():
+    items = len(user_basket)
     form = CreatePost()
     if form.validate_on_submit():
         new_post = KittyPost(
@@ -268,7 +276,7 @@ def add_new_post():
         db.session.add(new_post)
         db.session.commit()
         return redirect(url_for("get_all_posts"))
-    return render_template("make-post.html", form=form, current_user=current_user)
+    return render_template("make-post.html", form=form, current_user=current_user, cart=items)
 
 
 @app.route("/edit-post/<int:post_id>", methods=["POST", "GET"])
@@ -303,14 +311,20 @@ def edit_post(post_id):
     return render_template("make-post.html", form=edit_form, current_user=current_user, is_edit=True)
 
 
-@app.route("/basket/<int:post_id>", methods=["POST", "GET"])
+@app.route("/basket/<int:post_id>/", methods=["POST", "GET"])
 def basket(post_id):
-    print(post_id)
+    items = len(user_basket)
+    if post_id > 0:
+        requested_post = KittyPost.query.get(post_id)
+        user_basket.append(requested_post)
+        print(user_basket)
+    return render_template("basket.html", current_user=current_user, posts=user_basket, cart=items)
 
-    requested_post = KittyPost.query.get(post_id)
-    user_basket.append(requested_post)
 
-    return render_template("basket.html", current_user=current_user, post=user_basket)
+@app.route("/remove")
+def remove():
+    del user_basket[-1]
+    return redirect(url_for("basket", post_id=0))
 
 
 @app.route("/delete/<int:post_id>")
