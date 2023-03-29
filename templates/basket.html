@@ -26,6 +26,7 @@
       <table class="table table-bordered">
         <thead>
           <tr>
+            <th>#</th>
             <th scope="col">Item</th>
             <th scope="col">Title</th>
             <th scope="col">Time to Make</th>
@@ -38,14 +39,13 @@
         {% for post in posts %}
         <tbody>
           <tr>
-
             <td><a href="{{ url_for('show_post', post_id=post.id) }}" style="padding: 10px 10px 30px 10px;"><img alt="Card image cap" src="{{ post.img_url }}" style="height: 50px;"></a></td>
             <td>{{ post.title }} </td>
             <td>{{ post.make_days }} days</td>
             <td>2</td>
             <td>£25</td>
             <td>£50</td>
-            <td><a href="{{ url_for('remove', item=post.id) }}">X</a></td>
+            <td onclick="selectNum(this)">X</td>
           </tr>
         </tbody>
       {% endfor %}
@@ -57,6 +57,11 @@
       <div class="col-md-10">
         <a href="#" class="btn btn-primary">***</a>
       </div>
+      <script>
+        function selectNum(x) {
+          alert("Row index is: " + x.rowIndex);
+        }
+      </script>
     </div>
 
     </div>
