@@ -57,6 +57,12 @@
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('contact') }}">Contact</a>
           </li>
+          <li class="nav-item row">
+            <a class="nav-link text-white" href="#"><i class="fas fa-shopping-cart fa-2x"></i></a>
+            {% if cart > 0 %}
+              <h5 class="text-white">({{ cart }})</h5>
+            {% endif %}
+          </li>
         </ul>
       </div>
     </div>

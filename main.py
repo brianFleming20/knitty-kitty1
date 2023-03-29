@@ -11,7 +11,9 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, URL
 from functools import wraps
 from forms import CreatePostForm
-from flask_gravatar import Gravatar
+import os
+from dotenv import load_dotenv
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
@@ -19,11 +21,13 @@ ckeditor = CKEditor(app)
 Bootstrap(app)
 
 ##CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///kittySales.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///kitty-sales.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=False,
-                    force_lower=False, use_ssl=False, base_url=None)
+
+SECRET_KEY = os.environ.get("PASSWORD")
+print(SECRET_KEY)
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -47,7 +51,9 @@ def admin_only(f):
     return decorated_function
 
 
+user_basket = []
 ##CONFIGURE TABLES
+
 
 class KittyPost(db.Model):
     __tablename__ = "kitty_posts"
@@ -60,6 +66,9 @@ class KittyPost(db.Model):
     description = db.Column(db.String(250), nullable=False)
     date = db.Column(db.String(250), nullable=False)
     body = db.Column(db.Text, nullable=False)
+    price = db.Column(db.String(100), nullable=False)
+    stock_quantity = db.Column(db.Integer, nullable=False)
+    make_days = db.Column(db.String(50), nullable=False)
     img_url = db.Column(db.String(250), nullable=False)
     comment = relationship("Comments", back_populates="parent_post")
 # db.create_all()
@@ -109,8 +118,15 @@ class basket(db.Model):
     __tablename__ = "basket"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("Users.id"))
-    item_id = db.Column(db.String)
+    item1 = db.Column(db.Integer, db.ForeignKey("item.id"))
+    items = db.Column(db.JSON, default=[])
 
+
+class orderItem(db.Model):
+    __tablename__ = "item"
+    id = db.Column(db.Integer, primary_key=True)
+    item = db.Column(db.Integer, db.ForeignKey("kitty_posts.id"))
+    quantity = db.Column(db.Integer, nullable=False)
 
 
 db.create_all()
@@ -130,12 +146,14 @@ class UserLogin(FlaskForm):
     submit = SubmitField("Log me in!")
 
 
-class CreatePostForm(FlaskForm):
+class CreatePost(FlaskForm):
     title = StringField("Title", validators=[DataRequired()])
     description = StringField("Description", validators=[DataRequired()])
     img_url = StringField("Image URL", validators=[DataRequired()])
     author = StringField("Author", validators=[DataRequired()])
     price = StringField("Price", validators=[DataRequired()])
+    stock = StringField("Stock Quantity", validators=[DataRequired()])
+    make_day = StringField("Days to make", validators=[DataRequired()])
     body = CKEditorField("Item Content", validators=[DataRequired()])
     submit = SubmitField("Make new post")
 
@@ -145,11 +163,12 @@ class CommentForm(FlaskForm):
     submit = SubmitField("Submit Comment")
 
 
-@app.route('/')
+@app.route('/', methods=["POST", "GET"])
 def get_all_posts():
     posts = KittyPost.query.all()
-    data = request.form.get('ckeditor')
-    return render_template("index.html", all_posts=posts, current_user=current_user)
+    items = len(user_basket)
+    # data = request.form.get('ckeditor')
+    return render_template("index.html", all_posts=posts, current_user=current_user, cart=items)
 
 
 @app.route('/register', methods=["POST", "GET"])
@@ -200,6 +219,7 @@ def logout():
 
 @app.route("/post/<int:post_id>", methods=["POST", "GET"])
 def show_post(post_id):
+    items = len(user_basket)
     comment_form = CommentForm()
     requested_post = KittyPost.query.get(post_id)
     # comments = requested_post.comment
@@ -215,7 +235,7 @@ def show_post(post_id):
         db.session.add(new_comment)
         db.session.commit()
         return redirect(url_for("show_post", post_id=post_id))
-    return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form)
+    return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form, cart=items)
 
 
 @app.route("/about")
@@ -231,7 +251,8 @@ def contact():
 @app.route("/new-post", methods=["POST", "GET"])
 @admin_only
 def add_new_post():
-    form = CreatePostForm()
+    items = len(user_basket)
+    form = CreatePost()
     if form.validate_on_submit():
         new_post = KittyPost(
             title=form.title.data,
@@ -240,24 +261,30 @@ def add_new_post():
             img_url=form.img_url.data,
             author=current_user,
             author_id=current_user.id,
+            price=form.price.data,
+            make_days=form.make_day.data,
+            stock_quantity=form.stock.data,
             date=date.today().strftime("%B %d, %Y")
         )
         db.session.add(new_post)
         db.session.commit()
         return redirect(url_for("get_all_posts"))
-    return render_template("make-post.html", form=form, current_user=current_user)
+    return render_template("make-post.html", form=form, current_user=current_user, cart=items)
 
 
 @app.route("/edit-post/<int:post_id>", methods=["POST", "GET"])
 @admin_only
 def edit_post(post_id):
     post = KittyPost.query.get(post_id)
-    edit_form = CreatePostForm(
+    edit_form = CreatePost(
         title=post.title,
         description=post.description,
         img_url=post.img_url,
         author=post.author.name,
         author_id=current_user.id,
+        price=post.price,
+        make_days=post.make_day,
+        stock_quantity=post.stock_quantity,
         body=post.body
     )
 
@@ -267,6 +294,9 @@ def edit_post(post_id):
         post.img_url = edit_form.img_url.data
         post.author = current_user
         post.author_id = current_user.id
+        post.price = edit_form.price
+        post.stock_quantity = edit_form.stock
+        post.make_day = edit_form.make_day
         post.body = edit_form.body.data
         db.session.commit()
         return redirect(url_for("show_post", post_id=post.id))
@@ -274,11 +304,21 @@ def edit_post(post_id):
     return render_template("make-post.html", form=edit_form, current_user=current_user, is_edit=True)
 
 
-@app.route("/basket/<int:post_id>", methods=["POST", "GET"])
+@app.route("/basket/<int:post_id>/", methods=["POST", "GET"])
 def basket(post_id):
+    items = len(user_basket)
     requested_post = KittyPost.query.get(post_id)
+    user_basket.append(requested_post)
+    print(user_basket)
 
-    return render_template("basket.html", current_user=current_user, post=requested_post)
+    return render_template("basket.html", current_user=current_user, posts=user_basket, cart=items)
+
+
+@app.route("/remove/<int:item>", methods=["POST", "GET"])
+def remove(item):
+    print(item)
+    user_basket.remove(item)
+    return redirect(url_for("basket", post_id=0))
 
 
 @app.route("/delete/<int:post_id>")
