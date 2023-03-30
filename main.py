@@ -242,7 +242,6 @@ def show_post(post_id):
     items = len(user_basket)
     comment_form = CommentForm()
     requested_post = KittyPost.query.get(post_id)
-    # comments = requested_post.comment
     if comment_form.validate_on_submit():
         if not current_user.is_authenticated:
             flash("You need to login or register to comment.")
@@ -267,7 +266,13 @@ def about():
 @app.route("/contact")
 def contact():
     items = len(user_basket)
-    form = AddAddress()
+    form = ContactForm()
+    if form.validate_on_submit():
+        name = form.name.data
+        email = form.email.data
+        phone = form.phone.data
+        message = form.body.data
+
     return render_template("contact.html", current_user=current_user, form=form, cart=items)
 
 
@@ -331,7 +336,18 @@ def edit_post(post_id):
 @app.route("/address")
 def address():
     items = len(user_basket)
-    return render_template("address.html", cart=items)
+    form = AddAddress()
+    if form.validate_on_submit():
+        new_address = Address(
+            address1=form.street.data,
+            address2=form.town.data,
+            address3=form.county.data,
+            post_code=form.postcode.data,
+            country=form.country.data
+        )
+        db.session.add(new_address)
+        db.session.commit()
+    return render_template("address.html", form=form, cart=items)
 
 
 @app.route("/basket/<int:post_id>/", methods=["POST", "GET"])
