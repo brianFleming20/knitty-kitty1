@@ -163,6 +163,24 @@ class CommentForm(FlaskForm):
     submit = SubmitField("Submit Comment")
 
 
+class AddAddress(FlaskForm):
+    street = StringField("Street", validators=[DataRequired()])
+    street2 = StringField("Street 2", validators=[DataRequired()])
+    town = StringField("Town", validators=[DataRequired()])
+    county = StringField("County", validators=[DataRequired()])
+    postcode = StringField("Post / Zip code", validators=[DataRequired()])
+    country = StringField("Country", validators=[DataRequired()], default="UK")
+    submit = SubmitField("Enter Address")
+
+
+class ContactForm(FlaskForm):
+    name = StringField("Name", validators=[DataRequired()])
+    email = StringField("Email", validators=[DataRequired()])
+    phone = StringField("Phone No.")
+    body = CKEditorField("Message Content", validators=[DataRequired()])
+    submit = SubmitField("Submit Request")
+
+
 @app.route('/', methods=["POST", "GET"])
 def get_all_posts():
     posts = KittyPost.query.all()
@@ -173,6 +191,7 @@ def get_all_posts():
 
 @app.route('/register', methods=["POST", "GET"])
 def register():
+    items = len(user_basket)
     form = RegisterForm()
     user = User.query.filter_by(email=form.email.data).first()
 
@@ -192,11 +211,12 @@ def register():
         login_user(new_user)
         return redirect(url_for("get_all_posts"))
 
-    return render_template("register.html", form=form, current_user=current_user)
+    return render_template("register.html", form=form, current_user=current_user, cart=items)
 
 
 @app.route('/login', methods=["POST", "GET"])
 def login():
+    items = len(user_basket)
     form = UserLogin()
     if form.validate_on_submit():
         email = form.email.data
@@ -208,7 +228,7 @@ def login():
         else:
             flash("Your email does not exist, please register.")
             return redirect(url_for("register"))
-    return render_template("login.html", form=form, current_user=current_user)
+    return render_template("login.html", form=form, current_user=current_user, cart=items)
 
 
 @app.route('/logout')
@@ -240,12 +260,15 @@ def show_post(post_id):
 
 @app.route("/about")
 def about():
-    return render_template("about.html", current_user=current_user)
+    items = len(user_basket)
+    return render_template("about.html", current_user=current_user, cart=items)
 
 
 @app.route("/contact")
 def contact():
-    return render_template("contact.html", current_user=current_user)
+    items = len(user_basket)
+    form = AddAddress()
+    return render_template("contact.html", current_user=current_user, form=form, cart=items)
 
 
 @app.route("/new-post", methods=["POST", "GET"])
@@ -275,6 +298,7 @@ def add_new_post():
 @app.route("/edit-post/<int:post_id>", methods=["POST", "GET"])
 @admin_only
 def edit_post(post_id):
+    items = len(user_basket)
     post = KittyPost.query.get(post_id)
     edit_form = CreatePost(
         title=post.title,
@@ -301,22 +325,27 @@ def edit_post(post_id):
         db.session.commit()
         return redirect(url_for("show_post", post_id=post.id))
 
-    return render_template("make-post.html", form=edit_form, current_user=current_user, is_edit=True)
+    return render_template("make-post.html", form=edit_form, current_user=current_user, is_edit=True, cart=items)
+
+
+@app.route("/address")
+def address():
+    items = len(user_basket)
+    return render_template("address.html", cart=items)
 
 
 @app.route("/basket/<int:post_id>/", methods=["POST", "GET"])
 def basket(post_id):
     items = len(user_basket)
-    requested_post = KittyPost.query.get(post_id)
-    user_basket.append(requested_post)
-    print(user_basket)
+    if post_id > 0:
+        requested_post = KittyPost.query.get(post_id)
+        user_basket.insert(0, requested_post)
     return render_template("basket.html", current_user=current_user, posts=user_basket, cart=items)
 
 
-@app.route("/remove/<int:item>", methods=["POST", "GET"])
-def remove(item):
-    print(item)
-    user_basket.remove(item)
+@app.route("/remove")
+def remove():
+    del user_basket[0]
     return redirect(url_for("basket", post_id=0))
 
 
