@@ -12,11 +12,12 @@ from wtforms.validators import DataRequired, URL
 from functools import wraps
 from forms import CreatePostForm
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+app.config['SECRET_KEY'] = '8BYkEfBA6O6donbWlSihBXox7C0sKR6z'
 ckeditor = CKEditor(app)
 Bootstrap(app)
 
@@ -26,7 +27,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 SECRET_KEY = os.environ.get("PASSWORD")
-print(SECRET_KEY)
+
+keys = os.environ.get("APWL")
+
+sep = int(os.environ.get("SEPERATOR"))
 
 
 login_manager = LoginManager()
@@ -165,7 +169,7 @@ class CommentForm(FlaskForm):
 
 class AddAddress(FlaskForm):
     street = StringField("Street", validators=[DataRequired()])
-    street2 = StringField("Street 2", validators=[DataRequired()])
+    street2 = StringField("Street 2")
     town = StringField("Town", validators=[DataRequired()])
     county = StringField("County", validators=[DataRequired()])
     postcode = StringField("Post / Zip code", validators=[DataRequired()])
@@ -179,6 +183,21 @@ class ContactForm(FlaskForm):
     phone = StringField("Phone No.")
     body = CKEditorField("Message Content", validators=[DataRequired()])
     submit = SubmitField("Submit Request")
+
+
+def check_data(encry, data):
+    email1 = data[:sep]
+    email2 = data[sep:]
+    check = email1 + keys + email2
+    result = check_password_hash(encry, check)
+    return result
+
+
+def do_it(data_in):
+    select1 = data_in[:sep]
+    select2 = data_in[sep:]
+    check_out = select1 + keys + select2
+    return generate_password_hash(check_out, method='pbkdf2:sha256', salt_length=8)
 
 
 @app.route('/', methods=["POST", "GET"])
@@ -242,9 +261,10 @@ def show_post(post_id):
     items = len(user_basket)
     comment_form = CommentForm()
     requested_post = KittyPost.query.get(post_id)
+
     if comment_form.validate_on_submit():
         if not current_user.is_authenticated:
-            flash("You need to login or register to comment.")
+            flash("You need to login or register.")
             return redirect(url_for("login"))
         new_comment = Comments(
             text=comment_form.comment_text.data,
@@ -259,8 +279,21 @@ def show_post(post_id):
 
 @app.route("/about")
 def about():
+    done = "No Email"
     items = len(user_basket)
-    return render_template("about.html", current_user=current_user, cart=items)
+    wrong_email = "someone@gmail.com"
+    user_email = User.query.get(current_user.id)
+    email = user_email.email
+
+    encrypted = do_it(email)
+    wrong_one = do_it(wrong_email)
+
+    data_out1 = check_data(wrong_one, email)
+    print(data_out1)
+    if data_out1:
+        done = email
+
+    return render_template("about.html", current_user=current_user, cart=items, email=done)
 
 
 @app.route("/contact")
@@ -352,10 +385,15 @@ def address():
 
 @app.route("/basket/<int:post_id>/", methods=["POST", "GET"])
 def basket(post_id):
-    items = len(user_basket)
-    if post_id > 0:
-        requested_post = KittyPost.query.get(post_id)
-        user_basket.insert(0, requested_post)
+    items = 0
+    if not current_user.is_authenticated:
+        flash("You need to login or register.")
+        return redirect(url_for("login"))
+    else:
+        items = len(user_basket)
+        if post_id > 0:
+            requested_post = KittyPost.query.get(post_id)
+            user_basket.insert(0, requested_post)
     return render_template("basket.html", current_user=current_user, posts=user_basket, cart=items)
 
 
