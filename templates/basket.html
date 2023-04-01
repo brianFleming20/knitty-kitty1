@@ -18,6 +18,12 @@
 
   <!-- Main Content -->
   <div class="container">
+
+      {% for line in address %}
+      <a>{{ line }}</a>
+      {% endfor %}
+
+
      <div class="row justify-content-end">
       <h5>Logged in as {{ current_user.name }}</h5>
      </div>
@@ -52,9 +58,11 @@
         <a href="{{ url_for('remove') }}" class="btn btn-primary float-right">Remove last item</a>
       </div>
 
-    </div>
-    <a href="#" class="btn btn-success float-right">Add address</a>
-    </div>
+      </div>
+        {% if add_btn == 0 %}
+        <a href="{{ url_for('address') }}" class="btn btn-success float-right">Add address</a>
+        {% endif %}
+      </div>
 
   <hr>
 
