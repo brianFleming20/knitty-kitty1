@@ -504,3 +504,8 @@ footer .copyright {
   /* padding: 40px 20px 40px 20px; */
   padding: 10% 10% 10% 10%
 }
+
+.container > .orders{
+    padding-right: 20px;
+}
+

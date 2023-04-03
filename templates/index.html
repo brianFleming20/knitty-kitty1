@@ -27,54 +27,14 @@
       <div class="container">
           <div class="clearfix">
               {% if current_user.id == 1: %}
-              <a class="btn btn-primary float-right" href="{{url_for('add_new_post')}}">Create New Post</a>
+               <a class="btn btn-primary float-left" href="{{url_for('stock_n_orders')}}">Stock & Orders</a>
+              <a class="btn btn-primary float-right" href="{{url_for('add_new_post')}}">Add new Item</a>
               {% endif %}
           </div>
           <br>
 
           <div class="row row-cols-1 row-cols-md-3 g-4" id="show-me">
 
-
-<!--            {% for post in all_posts %}-->
-<!--            <div class="card">-->
-<!--            <a href="{{ url_for('show_post', post_id=post.id) }}" style="padding: 10px 10px 0 10px;"><img class="card-img-top" style="width: 300px;" src="{{ post.img_url }}" alt="Card image cap"></a>-->
-<!--&lt;!&ndash;        <img class="card-img-top" style="padding: 10px 10px 10px 10px; height: 300px;" src="{{ post.img_url }}" alt="Card image cap">&ndash;&gt;-->
-<!--                <div class="card-body">-->
-<!--                    <h5 class="card-title">{{ post.title }}-->
-<!--                    {% if current_user.id == 1: %}-->
-<!--                    <a href="{{url_for('delete_post', post_id=post.id) }}">✘</a>-->
-<!--                    {% endif %} </h5>-->
-<!--                    <p class="card-text">{{ post.description }}</p>-->
-<!--                    <p class="card-text"><small class="text-muted">{{ post.date }}</small></p>-->
-<!--                    <p class="card-text"><small class="text-muted">Price - {{ post.price }}</small></p>-->
-<!--                    <form action="" method="POST">-->
-<!--                        <label for="qty">Quantity</label>-->
-<!--                        <select name="quantity" id="qty">-->
-<!--                          <option value="1">1</option>-->
-<!--                          <option value="2">2</option>-->
-<!--                          <option value="3">3</option>-->
-<!--                          <option value="4">4</option>-->
-<!--                          <option value="5">5</option>-->
-<!--                        </select>-->
-<!--                    </form>-->
-<!--                    <input type="submit" value="Select" style="background-color: #19A7CE;" onclick="myfunction()">-->
-<!--                    <label for="qty">Quantity</label>-->
-<!--                    <select name="quantity" id="qty">-->
-<!--                      <option value="1">1</option>-->
-<!--                      <option value="2">2</option>-->
-<!--                      <option value="3">3</option>-->
-<!--                      <option value="4">4</option>-->
-<!--                      <option value="5">5</option>-->
-<!--                    </select>-->
-<!--                    <script>-->
-<!--                        function myfunction(qty) {-->
-<!--                        window.location.href="{{ url_for('basket', post_id=post.id) }}";-->
-<!--                        }-->
-<!--                    </script>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--            {% endfor %}-->
-<!--          </div>-->
          {% for post in all_posts %}
       <div class="card">
           <a href="{{ url_for('show_post', post_id=post.id) }}" style="padding: 10px 10px 10px 10px;"><img class="card-img-top" style="width: 300px;" src="{{ post.img_url }}" alt="Card image cap"></a>

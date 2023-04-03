@@ -15,10 +15,12 @@ import os
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 from flask_mail import Mail, Message
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+app.config['SECRET_KEY'] = '8BYkEfBA6O6donbWlSihBXox7C0sKR6z'
 ckeditor = CKEditor(app)
 Bootstrap(app)
 
@@ -26,7 +28,6 @@ Bootstrap(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///kitty-sales.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
 
 load_dotenv()
 private = os.getenv("PASSWORD")
@@ -49,6 +50,11 @@ mail = Mail(app)
 #
 # undo = f.decrypt(token)
 # print(undo.decode())
+SECRET_KEY = os.environ.get("PASSWORD")
+
+keys = os.environ.get("APWL")
+
+# sep = int(os.environ.get("SEPERATOR"))
 
 
 login_manager = LoginManager()
@@ -203,6 +209,21 @@ class ContactForm(FlaskForm):
     submit = SubmitField("Submit Request")
 
 
+# def check_data(encry, data):
+#     email1 = data[:sep]
+#     email2 = data[sep:]
+#     check = email1 + keys + email2
+#     result = check_password_hash(encry, check)
+#     return result
+
+
+# def do_it(data_in):
+#     select1 = data_in[:sep]
+#     select2 = data_in[sep:]
+#     check_out = select1 + keys + select2
+#     return generate_password_hash(check_out, method='pbkdf2:sha256', salt_length=8)
+
+
 @app.route('/', methods=["POST", "GET"])
 def get_all_posts():
     posts = KittyPost.query.all()
@@ -265,10 +286,10 @@ def show_post(post_id):
     items = len(user_basket)
     comment_form = CommentForm()
     requested_post = KittyPost.query.get(post_id)
-    # comments = requested_post.comment
+
     if comment_form.validate_on_submit():
         if not current_user.is_authenticated:
-            flash("You need to login or register to comment.")
+            flash("You need to login or register.")
             return redirect(url_for("login"))
         new_comment = Comments(
             text=comment_form.comment_text.data,
@@ -285,6 +306,21 @@ def show_post(post_id):
 def about():
     items = len(user_basket)
     return render_template("about.html", current_user=current_user, cart=items)
+    done = "No Email"
+    items = len(user_basket)
+    wrong_email = "someone@gmail.com"
+    user_email = User.query.get(current_user.id)
+    email = user_email.email
+
+    encrypted = do_it(email)
+    wrong_one = do_it(wrong_email)
+
+    data_out1 = check_data(wrong_one, email)
+    print(data_out1)
+    if data_out1:
+        done = email
+
+    return render_template("about.html", current_user=current_user, cart=items, email=done)
 
 
 @app.route("/contact")
@@ -357,6 +393,31 @@ def edit_post(post_id):
     return render_template("make-post.html", form=edit_form, current_user=current_user, is_edit=True, cart=items)
 
 
+@app.route("/stock")
+def stock_n_orders():
+    items = len(user_basket)
+    posts = KittyPost.query.all()
+    users = User.query.all()
+
+    return render_template("stock.html", cart=items)
+
+
+@app.route("/email-order")
+def email():
+    items = len(user_basket)
+    auser = User.query.filter_by(id=current_user.id).first()
+    print(auser.id)
+    print(user_basket[0].id)
+    orders = boughtBy(
+        user_id=auser.id,
+        item=user_basket[0].id,
+        date=date.today().strftime("%B %d, %Y")
+    )
+    db.session.add(orders)
+    db.session.commit()
+    return render_template("email-order.html", user=auser, cart=items)
+
+
 @app.route("/address", methods=["POST", "GET"])
 def address():
     items = len(user_basket)
@@ -367,40 +428,43 @@ def address():
             address2=f.encrypt(form.town.data.encode()),
             address3=f.encrypt(form.county.data.encode()),
             post_code=f.encrypt(form.postcode.data.encode()),
-            country=f.encrypt(form.country.data.encode())
+            country=f.encrypt(form.country.data.encode()),
+            user=current_user.id
         )
         db.session.add(new_address)
         db.session.commit()
-        return redirect(url_for('get_all_posts'))
+        return redirect(url_for('basket', post_id=current_user.id))
     return render_template("address.html", form=form, cart=items)
 
 
 @app.route("/basket/<int:post_id>/", methods=["POST", "GET"])
 def basket(post_id):
-    items = 0
     btn = 0
-    address = []
-    print(Address.query.get(post_id))
-    if Address.query.get(post_id) == current_user.id:
-        user_address = Address.query.get(post_id)
-
-        address = ["one", "two", "three", "four"]
+    address = ["No Address"]
+    if Address.query.filter_by(user=current_user.id).first():
+        user_address = Address.query.filter_by(user=current_user.id).first()
+        add1 = f.decrypt(user_address.address1).decode()
+        add2 = f.decrypt(user_address.address2).decode()
+        add3 = f.decrypt(user_address.address3).decode()
+        pcode = f.decrypt(user_address.post_code).decode()
+        country = f.decrypt(user_address.country).decode()
+        address = [add1, add2, add3, pcode, country]
         btn = 1
 
     if not current_user.is_authenticated:
         flash("You need to login or register.")
         return redirect(url_for("login"))
     else:
-        items = len(user_basket)
         if post_id > 0:
             requested_post = KittyPost.query.get(post_id)
             user_basket.insert(0, requested_post)
+        items = len(user_basket)
     return render_template("basket.html", current_user=current_user, posts=user_basket, address=address, add_btn=btn, cart=items)
 
 
 @app.route("/remove")
 def remove():
-    del user_basket[-1]
+    del user_basket[0]
     return redirect(url_for("basket", post_id=0))
 
 
