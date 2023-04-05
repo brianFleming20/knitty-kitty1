@@ -7,8 +7,8 @@
       <div class="row">
         <div class="col-lg-8 col-md-10 mx-auto">
           <div class="page-heading">
-            <h1>About Me</h1>
-            <span class="subheading">This is what I do.</span>
+            <h1>Email order</h1>
+            <span class="subheading">You have requested...</span>
           </div>
         </div>
       </div>
@@ -17,13 +17,36 @@
 
   <!-- Main Content -->
   <div class="container">
+    <div style="text-align: center;">
+      <span>This request will be made to <strong>Knitty-Kitty Creations</strong> for conformation and a request for payment.</span>
+      <hr><br>
+    </div>
+
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
-        <h4>{{ user.name }}</h4>
-        <h5>{{ user.email }}</h5>
+        <h4>{{ user }}</h4>
+        <h5>{{ email }}</h5>
+        {% for item in basket %}
+        <div class="row">
+          <img alt="Card image cap" src="{{ item.img_url }}" style="height: 45px;">
+          <span class="col-sm-3">{{ item.title }}</span>
+          <span class="col-sm-4">{{ item.description }}</span>
+          <span class="col-sm-3">{{ item.price }}</span>
+        </div>
+        {% endfor %}
+        <br>
+        <div class="row">
+          <span class="col-sm-8">Post and Packaging</span>
+          <span class="col-sm-3">{{ pandp }}</span>
+        </div>
+        <span class="col-sm-5 float-right">Total = {{ total }}</span>
         <p>Your orders will be emailed and payment will be requested</p>
         <p>Once the stock has been fulfilled.</p>
         <p>Sit tight, needles are flying! </p>
+      </div>
+      <div>
+        <span>You should hear back for us within a few days.</span>
+        <span>Thank you for requesting an order with Knitty-Kitty Creations</span>
       </div>
     </div>
   </div>

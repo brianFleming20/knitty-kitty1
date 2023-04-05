@@ -14,6 +14,7 @@ from forms import CreatePostForm
 import os
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
+import json
 from flask_mail import Mail, Message
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
@@ -45,16 +46,8 @@ app.config['MAIL_USE_SSL'] = True
 mail = Mail(app)
 
 
-# token = f.encrypt("A really secret message. Not for prying eyes.".encode())
-# print(token)
-#
-# undo = f.decrypt(token)
-# print(undo.decode())
 SECRET_KEY = os.environ.get("PASSWORD")
-
 keys = os.environ.get("APWL")
-
-# sep = int(os.environ.get("SEPERATOR"))
 
 
 login_manager = LoginManager()
@@ -80,6 +73,7 @@ def admin_only(f):
 
 
 user_basket = []
+
 ##CONFIGURE TABLES
 
 
@@ -99,7 +93,6 @@ class KittyPost(db.Model):
     make_days = db.Column(db.String(50), nullable=False)
     img_url = db.Column(db.String(250), nullable=False)
     comment = relationship("Comments", back_populates="parent_post")
-# db.create_all()
 
 
 # User form data
@@ -134,30 +127,19 @@ class Address(db.Model):
     user = db.Column(db.Integer, db.ForeignKey("Users.id"))
 
 
-class boughtBy(db.Model):
-    __tablename__ = "sales"
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("Users.id"))
-    item = db.Column(db.Integer, db.ForeignKey("kitty_posts.id"))
-    date = db.Column(db.String(100), nullable=False)
-
-
-class basket(db.Model):
-    __tablename__ = "basket"
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("Users.id"))
-    item1 = db.Column(db.Integer, db.ForeignKey("item.id"))
-    items = db.Column(db.JSON)
-
-
-class orderItem(db.Model):
+class OrderItem(db.Model):
     __tablename__ = "item"
     id = db.Column(db.Integer, primary_key=True)
     item = db.Column(db.Integer, db.ForeignKey("kitty_posts.id"))
-    quantity = db.Column(db.Integer, nullable=False)
+    email = db.Column(db.String(250), nullable=False)
+    date = db.Column(db.String(100), nullable=False)
+    total = db.Column(db.String(100), nullable=False)
+    made = db.Column(db.Integer)
+    sent = db.Column(db.Integer)
+    paid = db.Column(db.Integer)
 
 
-db.create_all()
+# db.create_all()
 
 
 # Create form for registration of new user
@@ -209,21 +191,6 @@ class ContactForm(FlaskForm):
     submit = SubmitField("Submit Request")
 
 
-# def check_data(encry, data):
-#     email1 = data[:sep]
-#     email2 = data[sep:]
-#     check = email1 + keys + email2
-#     result = check_password_hash(encry, check)
-#     return result
-
-
-# def do_it(data_in):
-#     select1 = data_in[:sep]
-#     select2 = data_in[sep:]
-#     check_out = select1 + keys + select2
-#     return generate_password_hash(check_out, method='pbkdf2:sha256', salt_length=8)
-
-
 @app.route('/', methods=["POST", "GET"])
 def get_all_posts():
     posts = KittyPost.query.all()
@@ -247,7 +214,7 @@ def register():
         password = form.password.data
         encrypted = generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
         new_user = User(
-            name=form.name.data,
+            name=f.encrypt(form.name.data.encode()),
             email=form.email.data,
             password=encrypted,
         )
@@ -306,21 +273,6 @@ def show_post(post_id):
 def about():
     items = len(user_basket)
     return render_template("about.html", current_user=current_user, cart=items)
-    done = "No Email"
-    items = len(user_basket)
-    wrong_email = "someone@gmail.com"
-    user_email = User.query.get(current_user.id)
-    email = user_email.email
-
-    encrypted = do_it(email)
-    wrong_one = do_it(wrong_email)
-
-    data_out1 = check_data(wrong_one, email)
-    print(data_out1)
-    if data_out1:
-        done = email
-
-    return render_template("about.html", current_user=current_user, cart=items, email=done)
 
 
 @app.route("/contact")
@@ -369,11 +321,11 @@ def edit_post(post_id):
         title=post.title,
         description=post.description,
         img_url=post.img_url,
-        author=post.author.name,
+        author=f.decrypt(post.author.name).decode(),
         author_id=current_user.id,
         price=post.price,
-        make_days=post.make_day,
-        stock_quantity=post.stock_quantity,
+        make_day=post.make_days,
+        stock=post.stock_quantity,
         body=post.body
     )
 
@@ -394,33 +346,45 @@ def edit_post(post_id):
 
 
 @app.route("/stock")
+@admin_only
 def stock_n_orders():
     items = len(user_basket)
     posts = KittyPost.query.all()
-    users = User.query.all()
+    orders = OrderItem.query.all()
+    order1 = OrderItem.query.get("1")
+    order1.made = "yes"
+    db.session.commit()
 
-    return render_template("stock.html", cart=items)
+    return render_template("stock.html", items=posts, orders=orders, cart=items)
 
 
 @app.route("/email-order")
 def email():
     items = len(user_basket)
     auser = User.query.filter_by(id=current_user.id).first()
-    print(auser.id)
-    print(user_basket[0].id)
-    orders = boughtBy(
-        user_id=auser.id,
-        item=user_basket[0].id,
-        date=date.today().strftime("%B %d, %Y")
-    )
-    db.session.add(orders)
+    basket = user_basket
+    name = f.decrypt(auser.name).decode()
+    postandpack = "£3.50"
+    cost = [float(item.price[1:]) for item in user_basket]
+    print(sum(cost) + 3.5)
+    total = format(sum(cost) + 3.5, ".2f")
+    for item in user_basket:
+        orders = OrderItem(
+            item=item.id,
+            email=current_user.email,
+            date=date.today().strftime("%B %d, %Y"),
+            total=item.price
+        )
+        db.session.add(orders)
     db.session.commit()
-    return render_template("email-order.html", user=auser, cart=items)
+
+    return render_template("email-order.html", user=name, email=auser, basket=basket, pandp=postandpack, total=total, cart=items)
 
 
 @app.route("/address", methods=["POST", "GET"])
 def address():
     items = len(user_basket)
+    name = f.decrypt(current_user.name).decode()
     form = AddAddress()
     if form.validate_on_submit():
         new_address = Address(
@@ -433,13 +397,15 @@ def address():
         )
         db.session.add(new_address)
         db.session.commit()
-        return redirect(url_for('basket', post_id=current_user.id))
-    return render_template("address.html", form=form, cart=items)
+        return redirect(url_for('basket', post_id=0))
+    return render_template("address.html", form=form, name=name, cart=items)
 
 
 @app.route("/basket/<int:post_id>/", methods=["POST", "GET"])
 def basket(post_id):
     btn = 0
+    postandpack = "£3.50"
+    name = f.decrypt(current_user.name).decode()
     address = ["No Address"]
     if Address.query.filter_by(user=current_user.id).first():
         user_address = Address.query.filter_by(user=current_user.id).first()
@@ -458,8 +424,12 @@ def basket(post_id):
         if post_id > 0:
             requested_post = KittyPost.query.get(post_id)
             user_basket.insert(0, requested_post)
+
         items = len(user_basket)
-    return render_template("basket.html", current_user=current_user, posts=user_basket, address=address, add_btn=btn, cart=items)
+        cost = [float(item.price[1:]) for item in user_basket]
+        print(sum(cost) + 3.5)
+        total = format (sum(cost) + 3.5, ".2f")
+    return render_template("basket.html", current_user=name, posts=user_basket, pandp=postandpack, total=total, address=address, add_btn=btn, cart=items)
 
 
 @app.route("/remove")

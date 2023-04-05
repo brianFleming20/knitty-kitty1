@@ -17,14 +17,17 @@
 
   <!-- Main Content -->
   <div class="container">
-
-<!--    <div class="row">-->
-<!--      <div class="col-lg-8 col-md-10 mx-auto">-->
-<!--        <p>Lorem ipsum dolor sit amet</p>-->
-<!--        <p>Lorem ipsum dolor sit amet</p>-->
-<!--        <p>Lorem ipsum dolor sit </p>-->
-<!--      </div>-->
-<!--    </div>-->
+    <div>
+      {% for item in items %}
+      <h5><img alt="Card image cap" src="{{ item.img_url }}" style="height: 50px;"> - {{ item.title }} - {{ item.price }} - {{ item.stock_quantity }} - {{ item.description }} - {{ item.make_days }}</h5>
+      {% endfor %}
+    </div>
+    <br><hr><br>
+    <div>
+      {% for ord in orders %}
+      <h5>{{ ord.date }} - {{ ord.email }} - {{ ord.title }} - {{ ord.total }} - {{ ord.made }} - {{ ord.sent }} - {{ ord.paid }}</h5>
+      {% endfor %}
+    </div>
   </div>
 
   <hr>
