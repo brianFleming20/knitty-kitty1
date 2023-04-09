@@ -17,17 +17,61 @@
 
   <!-- Main Content -->
   <div class="container">
-    <div>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+            <th scope="col">Item</th>
+            <th scope="col">Title</th>
+            <th scope="col">Price</th>
+            <th scope="col">Stock Quantity</th>
+            <th scope="col">Description</th>
+            <th scope="col">Time to Make</th>
+          </tr>
+      </thead>
+      <tbody>
       {% for item in items %}
-      <h5><img alt="Card image cap" src="{{ item.img_url }}" style="height: 50px;"> - {{ item.title }} - {{ item.price }} - {{ item.stock_quantity }} - {{ item.description }} - {{ item.make_days }}</h5>
+        <tr>
+          <td><img alt="Card image cap" src="{{ item.img_url }}" style="height: 50px;"></td>
+          <td>{{ item.title }}</td>
+          <td>{{ item.price }}</td>
+          <td> {{ item.stock_quantity }} </td>
+          <td>{{ item.description }} </td>
+          <td>{{ item.make_days }}</td>
+
+        </tr>
       {% endfor %}
-    </div>
+      </tbody>
+     </table>
+
+
     <br><hr><br>
-    <div>
-      {% for ord in orders %}
-      <h5>{{ ord.date }} - {{ ord.email }} - {{ ord.title }} - {{ ord.total }} - {{ ord.made }} - {{ ord.sent }} - {{ ord.paid }}</h5>
-      {% endfor %}
-    </div>
+
+      <form action="/update" method="POST" >
+    <table class="table table-bordered" id="tableId" border=1>
+      <thead>
+        <tr>
+            <th>Order</th>
+            <th scope="col">Date Ordered</th>
+            <th scope="col">Email</th>
+            <th scope="col">Total Price</th>
+
+            <th scope="col">Remove</th>
+          </tr>
+      </thead>
+      <tbody>
+        {% for ord in orders %}
+        <tr>
+          <td>{{ ord.id }}</td>
+          <td>{{ ord.date }}</td>
+          <td>{{ ord.email }}</td>
+          <td>{{ ord.total }}</td>
+          <td class="btn btn-danger"><a href="{{ url_for('delete_row', row=ord.id) }}">X</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    </form>
   </div>
 
   <hr>

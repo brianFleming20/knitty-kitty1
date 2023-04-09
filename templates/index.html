@@ -1,7 +1,7 @@
 {% include "header.html" %}
 
   <!-- Page Header -->
-  <header class="masthead" style="background-image: url('static/img/background6.png');">
+  <header class="masthead" style="background-image: url('static/img/background7.png');">
     <div class="overlay"></div>
     <div class="container">
       <div class="row">
@@ -47,8 +47,15 @@
           <p class="card-text">{{ post.description }}</p>
           <p class="card-text"><small class="text-muted">{{ post.date }}</small></p>
             <div class="row">
+                {% if current_user.is_anonymous %}
+                <h5><a href="{{ url_for('register') }}">Open an Order</a></h5>
+                {% elif post.stock_quantity > 0 %}
                 <a href="{{ url_for('basket', post_id=post.id) }}" class="btn btn-primary">Select</a>
                 <h5 style="padding-left: 20px;">Add 1 item</h5>
+                {% else %}
+                <h5>Out of Stock</h5>
+                {% endif %}
+
             </div>
 
 

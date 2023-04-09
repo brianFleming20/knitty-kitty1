@@ -25,7 +25,7 @@
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
         <h4>{{ user }}</h4>
-        <h5>{{ email }}</h5>
+        <h5>{{ email.email }}</h5>
         {% for item in basket %}
         <div class="row">
           <img alt="Card image cap" src="{{ item.img_url }}" style="height: 45px;">
@@ -52,5 +52,9 @@
   </div>
 
   <hr>
+
+  <a class="btn btn-primary float-right" href="{{ url_for('logout') }}">Log Out</a>
+
+
 
 {% include "footer.html" %}

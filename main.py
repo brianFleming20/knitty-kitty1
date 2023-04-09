@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, abort, request
+from flask import Flask, render_template, redirect, url_for, flash, abort
 from flask_wtf import FlaskForm
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor, CKEditorField
@@ -6,16 +6,16 @@ from datetime import date
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
-from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired, URL
+from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
+from wtforms import StringField, SubmitField, TextField, validators
+from wtforms.validators import DataRequired
 from functools import wraps
-from forms import CreatePostForm
 import os
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
-import json
-from flask_mail import Mail, Message
+import smtplib
+from email.message import EmailMessage
+from email.mime.text import MIMEText
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
@@ -37,14 +37,9 @@ password = os.getenv("EMPW")
 f = Fernet(private)
 
 
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = email
-app.config['MAIL_PASSWORD'] = password
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-mail = Mail(app)
-
+MAIL_USERNAME = os.environ.get('USER')
+MAIL_PASSWORD = os.environ.get('APP-PASS')
+KITTY_EMAIL = os.environ.get("EMAIL")
 
 SECRET_KEY = os.environ.get("PASSWORD")
 keys = os.environ.get("APWL")
@@ -186,9 +181,26 @@ class AddAddress(FlaskForm):
 class ContactForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired()])
-    phone = StringField("Phone No.")
+    subject = TextField("Subject", [validators.DataRequired('Please enter a Subject !')])
     body = CKEditorField("Message Content", validators=[DataRequired()])
     submit = SubmitField("Submit Request")
+
+
+def send_mail(subject, body, to):
+    msg = EmailMessage()
+    msg.set_content(body)
+    msg['subject'] = subject
+    msg['to'] = to
+    msg['cc'] = KITTY_EMAIL
+    user = MAIL_USERNAME
+    msg['from'] = user
+    password = MAIL_PASSWORD
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(user, password)
+    server.send_message(msg) # <- UPDATED
+    server.quit()
+    return True
 
 
 @app.route('/', methods=["POST", "GET"])
@@ -204,17 +216,15 @@ def get_all_posts():
 def register():
     items = len(user_basket)
     form = RegisterForm()
-    email = form.email.data
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(email=form.email.data).first()
 
     if form.validate_on_submit():
         if user:
             flash("You've already signed up with that email, log in instead!")
             return redirect(url_for('login'))
-        password = form.password.data
-        encrypted = generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
+        encrypted = generate_password_hash(form.password.data, method='pbkdf2:sha256', salt_length=8)
         new_user = User(
-            name=f.encrypt(form.name.data.encode()),
+            name=form.name.data,
             email=form.email.data,
             password=encrypted,
         )
@@ -231,19 +241,24 @@ def login():
     items = len(user_basket)
     form = UserLogin()
     if form.validate_on_submit():
-        password = form.password.data
         user = User.query.filter_by(email=form.email.data).first()
-        if user and check_password_hash(user.password, password):
+        if user and check_password_hash(user.password, form.password.data):
             login_user(user)
             return redirect(url_for("get_all_posts"))
         else:
-            flash("Your email does not exist, please register.")
+            flash("Your email does not exist, please create an order.")
             return redirect(url_for("register"))
     return render_template("login.html", form=form, current_user=current_user, cart=items)
 
 
 @app.route('/logout')
 def logout():
+    global user_basket
+    if current_user.id != 1:
+        print(User.query.filter_by(id=current_user.id))
+        Address.query.filter_by(user=current_user.id).delete()
+
+    user_basket = []
     logout_user()
     return redirect(url_for('get_all_posts'))
 
@@ -256,7 +271,7 @@ def show_post(post_id):
 
     if comment_form.validate_on_submit():
         if not current_user.is_authenticated:
-            flash("You need to login or register.")
+            flash("You need to create an order.")
             return redirect(url_for("login"))
         new_comment = Comments(
             text=comment_form.comment_text.data,
@@ -275,15 +290,27 @@ def about():
     return render_template("about.html", current_user=current_user, cart=items)
 
 
-@app.route("/contact")
+@app.route("/contact", methods=["POST", "GET"])
 def contact():
     items = len(user_basket)
     form = ContactForm()
+    filepath = "templates/request.txt"
     if form.validate_on_submit():
         name = form.name.data
-        email = form.email.data
-        phone = form.phone.data
+        send_email = form.email.data
+        subject = form.subject.data
         message = form.body.data
+        with open(filepath) as letter_file:
+            contents = letter_file.read()
+            new_contents = contents.replace(
+                "[NAME]", name).replace("[subject]", subject).replace(
+                "[message]", message).replace("[email]", send_email)
+
+        result = send_mail(subject, new_contents, send_email)
+        if result:
+            return redirect(url_for('success'))
+        else:
+            flash("Please try again, check the spelling.")
 
     return render_template("contact.html", current_user=current_user, form=form, cart=items)
 
@@ -321,7 +348,7 @@ def edit_post(post_id):
         title=post.title,
         description=post.description,
         img_url=post.img_url,
-        author=f.decrypt(post.author.name).decode(),
+        author=post.author.name,
         author_id=current_user.id,
         price=post.price,
         make_day=post.make_days,
@@ -351,40 +378,84 @@ def stock_n_orders():
     items = len(user_basket)
     posts = KittyPost.query.all()
     orders = OrderItem.query.all()
-    order1 = OrderItem.query.get("1")
-    order1.made = "yes"
+
     db.session.commit()
 
     return render_template("stock.html", items=posts, orders=orders, cart=items)
 
 
+@app.route("/success")
+def success():
+    if current_user.id != 1:
+        User.query.filter_by(id=current_user.id).delete()
+        Address.query.filter_by(user=current_user.id).delete()
+
+        # db.session.commit()
+    return render_template("success.html", cart=0)
+
+
+@app.route("/delete-row/<int:row>", methods=["POST", "GET"])
+@admin_only
+def delete_row(row):
+    OrderItem.query.filter_by(id=row).delete()
+    db.session.commit()
+    return redirect(url_for('stock_n_orders'))
+
+
 @app.route("/email-order")
 def email():
     items = len(user_basket)
+    filepath = "templates/order.txt"
     auser = User.query.filter_by(id=current_user.id).first()
-    basket = user_basket
-    name = f.decrypt(auser.name).decode()
+    address = Address.query.filter_by(user=current_user.id).first()
+    name = auser.name
     postandpack = "£3.50"
+    subject = "New Order."
+    ordered_items = []
+    addr1 = f.decrypt(address.address1).decode()
+    addr2 = f.decrypt(address.address1).decode()
+    addr3 = f.decrypt(address.address3).decode()
+    post_code = f.decrypt(address.post_code).decode()
+    country = f.decrypt(address.country).decode()
+    user_email = current_user.email
     cost = [float(item.price[1:]) for item in user_basket]
-    print(sum(cost) + 3.5)
     total = format(sum(cost) + 3.5, ".2f")
     for item in user_basket:
         orders = OrderItem(
             item=item.id,
-            email=current_user.email,
+            email=user_email,
             date=date.today().strftime("%B %d, %Y"),
             total=item.price
         )
+        ordered_items.append(f"-> {item.title}")
+        ordered_items.append(" - ")
+        ordered_items.append(item.price)
+        ordered_items.append(" : make time ")
+        ordered_items.append(f"{item.make_days} days.")
+        ordered_items.append("\n")
         db.session.add(orders)
     db.session.commit()
+    orders = ''.join(ordered_items)
+    with open(filepath) as letter_file:
+        contents = letter_file.read()
+        new_contents = contents.replace(
+            "[NAME]", name).replace("[subject]", subject).replace(
+            "[on]", date.today().strftime("%B %d, %Y")).replace("[email]", user_email).replace(
+            "[items]", orders).replace("[address1]", addr1).replace("[address2]", addr2).replace(
+            "[address3]", addr3).replace("[post]", post_code).replace("[country]", country).replace(
+            "[pandp]", postandpack)
 
-    return render_template("email-order.html", user=name, email=auser, basket=basket, pandp=postandpack, total=total, cart=items)
+    result = send_mail(subject, new_contents, user_email)
+    if result:
+        return redirect(url_for('success'))
+
+    return render_template("email-order.html", user=name, email=auser, basket=user_basket, pandp=postandpack, total=total, cart=items)
 
 
 @app.route("/address", methods=["POST", "GET"])
 def address():
     items = len(user_basket)
-    name = f.decrypt(current_user.name).decode()
+    name = current_user.name
     form = AddAddress()
     if form.validate_on_submit():
         new_address = Address(
@@ -405,35 +476,42 @@ def address():
 def basket(post_id):
     btn = 0
     postandpack = "£3.50"
-    name = f.decrypt(current_user.name).decode()
     address = ["No Address"]
-    if Address.query.filter_by(user=current_user.id).first():
-        user_address = Address.query.filter_by(user=current_user.id).first()
-        add1 = f.decrypt(user_address.address1).decode()
-        add2 = f.decrypt(user_address.address2).decode()
-        add3 = f.decrypt(user_address.address3).decode()
-        pcode = f.decrypt(user_address.post_code).decode()
-        country = f.decrypt(user_address.country).decode()
-        address = [add1, add2, add3, pcode, country]
-        btn = 1
-
     if not current_user.is_authenticated:
-        flash("You need to login or register.")
-        return redirect(url_for("login"))
+        flash("You need to start an order.")
+        return redirect(url_for("register"))
     else:
+        if Address.query.filter_by(user=current_user.id).first():
+            user_address = Address.query.filter_by(user=current_user.id).first()
+            add1 = f.decrypt(user_address.address1).decode()
+            add2 = f.decrypt(user_address.address2).decode()
+            add3 = f.decrypt(user_address.address3).decode()
+            pcode = f.decrypt(user_address.post_code).decode()
+            country = f.decrypt(user_address.country).decode()
+            address = [add1, add2, add3, pcode, country]
+            btn = 1
         if post_id > 0:
             requested_post = KittyPost.query.get(post_id)
             user_basket.insert(0, requested_post)
+            get_item = KittyPost.query.filter_by(id=post_id).first()
+            print(get_item.stock_quantity)
+            stock = get_item.stock_quantity - 1
+            get_item.stock_quantity = stock
+            db.session.commit()
 
         items = len(user_basket)
         cost = [float(item.price[1:]) for item in user_basket]
-        print(sum(cost) + 3.5)
         total = format (sum(cost) + 3.5, ".2f")
-    return render_template("basket.html", current_user=name, posts=user_basket, pandp=postandpack, total=total, address=address, add_btn=btn, cart=items)
+    return render_template("basket.html", current_user=current_user, posts=user_basket, pandp=postandpack, total=total, address=address, add_btn=btn, cart=items)
 
 
 @app.route("/remove")
 def remove():
+    index = user_basket[0]
+    get_item = KittyPost.query.filter_by(id=index.id).first()
+    stock = get_item.stock_quantity
+    get_item.stock_quantity = stock + 1
+    db.session.commit()
     del user_basket[0]
     return redirect(url_for("basket", post_id=0))
 

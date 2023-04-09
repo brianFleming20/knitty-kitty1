@@ -5,8 +5,8 @@
 
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="">
-  <meta name="author" content="">
+  <meta name="description" content="Requesting orders for knitted items of icons and fursuit hats, scalfs.">
+  <meta name="author" content="KnittyKittyCo">
 
   <title>Knitty-Kitty Creations</title>
 
@@ -41,10 +41,7 @@
           </li>
           {% if not current_user.is_authenticated: %}
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+            <a class="nav-link" href="{{ url_for('register') }}">Order</a>
           </li>
           {% else: %}
           <li class="nav-item">

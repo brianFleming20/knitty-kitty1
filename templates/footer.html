@@ -24,7 +24,17 @@
               <a href="#">
                 <span class="fa-stack fa-lg">
                   <i class="fas fa-circle fa-stack-2x"></i>
-                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                  <i class="fab fa-telegram fa-stack-1x fa-inverse"></i>
+                </span>
+              </a>
+            </li>
+            <li class="list-inline-item">
+              {% if not current_user.is_authenticated: %}
+              <a href="{{ url_for('login') }}">
+                {% endif %}
+                <span class="fa-stack" style="vertical-align: top;">
+                <i class="fas fa-user fa-stack-1x"></i>
+                <i class="fas fa-ban fa-stack-2x" style="color:Tomato"></i>
                 </span>
               </a>
             </li>
