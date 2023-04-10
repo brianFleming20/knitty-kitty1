@@ -37,15 +37,16 @@
 
          {% for post in all_posts %}
       <div class="card">
-          <a href="{{ url_for('show_post', post_id=post.id) }}" style="padding: 10px 10px 10px 10px;"><img class="card-img-top" style="width: 300px;" src="{{ post.img_url }}" alt="Card image cap"></a>
-<!--        <img class="card-img-top" style="padding: 10px 10px 10px 10px; height: 300px;" src="{{ post.img_url }}" alt="Card image cap">-->
+          <a href="{{ url_for('show_post', post_id=post.id) }}" style="padding: 8px 8px 8px 8px;"><img class="card-img-top" style="width: 300px;" src="{{ post.img_url }}" alt="Card image cap"></a>
+        <span class="actionBox"><small>Select image to customise item size or colour</small></span>
         <div class="card-body">
-          <h5 class="card-title">{{ post.title }}
+          <h4 class="card-title">{{ post.title }}
             {% if current_user.id == 1: %}
             <a href="{{url_for('delete_post', post_id=post.id) }}">✘</a>
-            {% endif %} </h5>
-          <p class="card-text">{{ post.description }}</p>
-          <p class="card-text"><small class="text-muted">{{ post.date }}</small></p>
+            {% endif %} </h4>
+            <h4>{{ post.price }}</h4>
+          <h6 class="card-text">{{ post.description }}</h6>
+            <span class="card-text">Customise - {{ post.col_size }}</span>
             <div class="row">
                 {% if current_user.is_anonymous %}
                 <h5><a href="{{ url_for('register') }}">Open an Order</a></h5>
@@ -55,7 +56,7 @@
                 {% else %}
                 <h5>Out of Stock</h5>
                 {% endif %}
-
+            <p class="card-text"><small class="text-muted">Available from {{ post.date }}</small></p>
             </div>
 
 

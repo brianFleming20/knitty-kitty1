@@ -53,8 +53,8 @@
             <th>Order</th>
             <th scope="col">Date Ordered</th>
             <th scope="col">Email</th>
+            <th scope="col">Custom request</th>
             <th scope="col">Total Price</th>
-
             <th scope="col">Remove</th>
           </tr>
       </thead>
@@ -64,8 +64,9 @@
           <td>{{ ord.id }}</td>
           <td>{{ ord.date }}</td>
           <td>{{ ord.email }}</td>
+          <td>{{ ord.col_size }}</td>
           <td>{{ ord.total }}</td>
-          <td class="btn btn-danger"><a href="{{ url_for('delete_row', row=ord.id) }}">X</a></td>
+          <td class="btn btn-danger col-sm-3"><a href="{{ url_for('delete_row', row=ord.id) }}">X</a></td>
         </tr>
         {% endfor %}
       </tbody>

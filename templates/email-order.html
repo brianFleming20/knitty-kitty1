@@ -26,12 +26,21 @@
       <div class="col-lg-8 col-md-10 mx-auto">
         <h4>{{ user }}</h4>
         <h5>{{ email.email }}</h5>
+        <br>
+        <div class="row">
+          <h5 class="col-sm-3">Item</h5>
+          <h5 class="col-sm-3">Description</h5>
+          <h5 class="col-sm-4">Customise</h5>
+          <h5 class="col-sm-2">Total</h5>
+        </div>
+
         {% for item in basket %}
         <div class="row">
           <img alt="Card image cap" src="{{ item.img_url }}" style="height: 45px;">
-          <span class="col-sm-3">{{ item.title }}</span>
+          <span class="col-sm-2">{{ item.title }}</span>
           <span class="col-sm-4">{{ item.description }}</span>
-          <span class="col-sm-3">{{ item.price }}</span>
+          <spam class="col-sm-3">{{ item.col_size }}</spam>
+          <span class="col-sm-2">{{ item.price }}</span>
         </div>
         {% endfor %}
         <br>
@@ -53,8 +62,7 @@
   </div>
 
   <hr>
-
-  <a class="btn btn-primary float-right" href="{{ url_for('logout') }}">Log Out</a>
+  <a class="btn btn-primary float-right" href="{{ url_for('success') }}">Continue...</a>
 
 
 

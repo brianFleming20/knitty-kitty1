@@ -85,6 +85,7 @@ class KittyPost(db.Model):
     stock_quantity = db.Column(db.Integer, nullable=False)
     make_days = db.Column(db.String(50), nullable=False)
     img_url = db.Column(db.String(250), nullable=False)
+    col_size = db.Column(db.String(250))
     comment = relationship("Comments", back_populates="parent_post")
 
 
@@ -127,12 +128,13 @@ class OrderItem(db.Model):
     email = db.Column(db.String(250), nullable=False)
     date = db.Column(db.String(100), nullable=False)
     total = db.Column(db.String(100), nullable=False)
+    custom = db.Column(db.String(250))
     made = db.Column(db.Integer)
     sent = db.Column(db.Integer)
     paid = db.Column(db.Integer)
 
 
-# db.create_all()
+db.create_all()
 
 
 # Create form for registration of new user
@@ -158,7 +160,7 @@ class CreatePost(FlaskForm):
     stock = StringField("Stock Quantity", validators=[DataRequired()])
     make_day = StringField("Days to make", validators=[DataRequired()])
     body = CKEditorField("Item Content", validators=[DataRequired()])
-    submit = SubmitField("Make new post")
+    submit = SubmitField("List Item")
 
 
 class CommentForm(FlaskForm):
@@ -182,6 +184,11 @@ class ContactForm(FlaskForm):
     subject = TextField("Subject", [validators.DataRequired('Please enter a Subject !')])
     body = CKEditorField("Message Content", validators=[DataRequired()])
     submit = SubmitField("Submit Request")
+
+
+class Customise(FlaskForm):
+    custom = StringField("Custom element")
+    submit = SubmitField("Submit request")
 
 
 def send_mail(subject, body, to):
@@ -261,22 +268,17 @@ def logout():
 @app.route("/post/<int:post_id>", methods=["POST", "GET"])
 def show_post(post_id):
     items = len(user_basket)
-    comment_form = CommentForm()
+    # comment_form = CommentForm()
     requested_post = KittyPost.query.get(post_id)
-
-    if comment_form.validate_on_submit():
+    custom_form = Customise()
+    if custom_form.validate_on_submit():
         if not current_user.is_authenticated:
             flash("You need to create an order.")
             return redirect(url_for("login"))
-        new_comment = Comments(
-            text=comment_form.comment_text.data,
-            comment_author=current_user,
-            parent_post=requested_post
-        )
-        db.session.add(new_comment)
+        requested_post.col_size = custom_form.custom.data
         db.session.commit()
-        return redirect(url_for("show_post", post_id=post_id))
-    return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form, cart=items)
+        return redirect(url_for("get_all_posts"))
+    return render_template("post.html", post=requested_post, current_user=current_user, form=custom_form, cart=items)
 
 
 @app.route("/about")
@@ -382,6 +384,12 @@ def stock_n_orders():
 @app.route("/success")
 def success():
     global user_basket
+    for item in user_basket:
+        each = item.id
+        each_item = KittyPost.query.filter_by(id=each).first()
+        each_item.col_size = None
+
+        db.session.commit()
     user_basket = []
     return render_template("success.html", cart=0)
 
@@ -417,13 +425,15 @@ def email():
             item=item.id,
             email=user_email,
             date=date.today().strftime("%B %d, %Y"),
-            total=item.price
+            total=item.price,
+            custom=item.col_size
         )
         ordered_items.append(f"-> {item.title}")
         ordered_items.append(" - ")
         ordered_items.append(item.price)
         ordered_items.append(" : make time ")
         ordered_items.append(f"{item.make_days} days.")
+        ordered_items.append(f" - {item.col_size}")
         ordered_items.append("\n")
         db.session.add(orders)
     db.session.commit()
@@ -437,9 +447,7 @@ def email():
             "[address3]", addr3).replace("[post]", post_code).replace("[country]", country).replace(
             "[pandp]", postandpack)
 
-    result = send_mail(subject, new_contents, user_email)
-    if result:
-        return redirect(url_for('success'))
+    send_mail(subject, new_contents, user_email)
 
     return render_template("email-order.html", user=name, email=auser, basket=user_basket, pandp=postandpack, total=total, cart=items)
 
@@ -486,7 +494,6 @@ def basket(post_id):
             requested_post = KittyPost.query.get(post_id)
             user_basket.insert(0, requested_post)
             get_item = KittyPost.query.filter_by(id=post_id).first()
-            print(get_item.stock_quantity)
             stock = get_item.stock_quantity - 1
             get_item.stock_quantity = stock
             db.session.commit()
