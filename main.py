@@ -12,10 +12,8 @@ from wtforms.validators import DataRequired
 from functools import wraps
 import os
 from cryptography.fernet import Fernet
-from dotenv import load_dotenv
 import smtplib
 from email.message import EmailMessage
-from email.mime.text import MIMEText
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
@@ -206,9 +204,7 @@ def send_mail(subject, body, to):
 @app.route('/', methods=["POST", "GET"])
 def get_all_posts():
     posts = KittyPost.query.all()
-
     items = len(user_basket)
-    # data = request.form.get('ckeditor')
     return render_template("index.html", all_posts=posts, current_user=current_user, cart=items)
 
 
@@ -253,12 +249,11 @@ def login():
 
 @app.route('/logout')
 def logout():
-    global user_basket
-    if current_user.id != 1:
-        print(User.query.filter_by(id=current_user.id))
+    if current_user.id > 1:
+        delete_user = User.query.filter_by(id=current_user.id).one()
+        db.session.delete(delete_user)
         Address.query.filter_by(user=current_user.id).delete()
-
-    user_basket = []
+        db.session.commit()
     logout_user()
     return redirect(url_for('get_all_posts'))
 
@@ -386,11 +381,8 @@ def stock_n_orders():
 
 @app.route("/success")
 def success():
-    if current_user.id != 1:
-        User.query.filter_by(id=current_user.id).delete()
-        Address.query.filter_by(user=current_user.id).delete()
-
-        # db.session.commit()
+    global user_basket
+    user_basket = []
     return render_template("success.html", cart=0)
 
 
