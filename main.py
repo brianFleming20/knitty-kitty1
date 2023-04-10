@@ -31,7 +31,6 @@ db = SQLAlchemy(app)
 load_dotenv()
 private = os.getenv("PASSWORD")
 email = os.getenv("EMAIL")
-password = os.getenv("EMPW")
 f = Fernet(private)
 
 
@@ -40,7 +39,6 @@ MAIL_PASSWORD = os.environ.get('APP-PASS')
 KITTY_EMAIL = os.environ.get("EMAIL")
 
 SECRET_KEY = os.environ.get("PASSWORD")
-keys = os.environ.get("APWL")
 
 
 login_manager = LoginManager()
