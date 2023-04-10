@@ -30,17 +30,11 @@ db = SQLAlchemy(app)
 
 load_dotenv()
 private = os.getenv("PASSWORD")
-email = os.getenv("EMAIL")
 f = Fernet(private)
-
-
 MAIL_USERNAME = os.environ.get('USER')
 MAIL_PASSWORD = os.environ.get('APP-PASS')
 KITTY_EMAIL = os.environ.get("EMAIL")
-
 SECRET_KEY = os.environ.get("PASSWORD")
-
-
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -523,4 +517,4 @@ def delete_post(post_id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
