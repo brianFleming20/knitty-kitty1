@@ -1,8 +1,8 @@
-from flask import Flask, render_template, redirect, url_for, flash, abort
+from flask import Flask, render_template, redirect, url_for, flash, abort, session
 from flask_wtf import FlaskForm
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor, CKEditorField
-from datetime import date
+from datetime import date, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
@@ -55,6 +55,13 @@ def admin_only(f):
         #Otherwise continue with the route function
         return f(*args, **kwargs)
     return decorated_function
+
+
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+    app.permanent_session_lifetime = timedelta(minutes=3)
+    session.modified = True
 
 
 user_basket = []
