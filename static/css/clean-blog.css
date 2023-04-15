@@ -72,8 +72,7 @@ content p {
 }
 
 .center {
-    text-align: center;
-    padding-left: 250px;
+    padding-left: 450px;
 }
 
 card {
@@ -275,12 +274,26 @@ header.masthead .site-heading .subheading {
   }
 }
 
+@media only screen and (max-width: 768px) {
+    .center {
+        padding-left: 280px;
+    }
+}
+
 
 header.masthead .post-heading .meta,
 header.masthead .post-heading .subheading {
   line-height: 1.1;
   display: block;
 }
+
+@media only screen and (max-width: 450px) {
+    .center {
+        padding-left: 150px;
+    }
+}
+
+
 
 header.masthead .post-heading .subheading {
   font-size: 24px;
