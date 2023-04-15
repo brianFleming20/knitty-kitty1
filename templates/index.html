@@ -1,26 +1,19 @@
 {% include "header.html" %}
 
   <!-- Page Header -->
-  <header class="masthead" style="background-image: url('static/img/pic05.jpg');">
+  <header class="masthead" style="Z-index: -1; background-image: url('static/img/pic05.jpg');">
       <div class="row">
           <a><img class="titletwo" src="static/img/kittyno4.png" alt="title image"></a>
        `    <img src="static/img/backgroundbere1.png" alt="title image">
+          <div class="overlay"></div>
+      </div>
+      <div class="heading">
+              <h1>Knitty-Kitty</h1>
+              <h2>Creations</h2>
+              <br>
+              <span class="subheading1">Giving wood the needle!</span>
       </div>
 
-    <div class="overlay"></div>
-    <div class="container">
-        <div class=" col-md-10 mx-auto">
-          <div class="site-heading">
-            <h1>Knitty-Kitty</h1>
-            <h1>Creations</h1>
-            <span class="subheading">Giving wood the needle!</span>
-            <span class="col-md-5 float_right">
-              <a href="#show-me"><i class="fa fa-arrow-circle-down fa-3x" aria-hidden="true"></i></a>
-            </span>
-          </div>
-      </div>
-
-    </div>
   </header>
 
 
@@ -29,19 +22,17 @@
       <div class="container">
           <div class="clearfix">
               {% if current_user.id == 1: %}
-               <a class="btn btn-primary float-left" href="{{url_for('stock_n_orders')}}">Stock & Orders</a>
-              <a class="btn btn-primary float-right" href="{{url_for('add_new_post')}}">Add new Item</a>
+
+              <a class="btn btn-primary" href="{{ url_for('stock_n_orders') }}">Stock & Orders</a>
+              <a class="btn btn-primary float-right" href="{{ url_for('add_new_post') }}">Add new Item</a>
+              {% else %}
+                 <span class="center col-md-2">
+                    <a class="btn btn-outline-primary center" href="{{ url_for('register') }}">Who are you?</a>
+                </span>
               {% endif %}
           </div>
-          <span class="center col-md-2">
-            {% if not current_user.is_authenticated %}
-            <a class="btn btn-outline-primary center" href="{{ url_for('register') }}">Who are you?</a>
-            {% endif %}
-        </span>
           <br>
-
           <div class="row row-cols-1 row-cols-md-3 g-4" id="show-me">
-
          {% for post in all_posts %}
       <div class="card">
           <a href="{{ url_for('show_post', post_id=post.id) }}" style="padding: 8px 8px 8px 8px;"><img class="card-img-top" style="width: 300px;" src="{{ post.img_url }}" alt="Card image cap"></a>

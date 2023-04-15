@@ -48,9 +48,9 @@ def admin_only(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         #If id is not 1 then return abort with 403 error
-        if current_user.id != 1:
-            return abort(403)
         if current_user.is_anonymous:
+            return abort(403)
+        if current_user.id != 1:
             return abort(403)
         #Otherwise continue with the route function
         return f(*args, **kwargs)
@@ -157,6 +157,7 @@ class CreatePost(FlaskForm):
     author = StringField("Author", validators=[DataRequired()])
     price = StringField("Price", validators=[DataRequired()])
     stock = StringField("Stock Quantity", validators=[DataRequired()])
+    style = StringField("Colour / Size")
     make_day = StringField("Days to make", validators=[DataRequired()])
     body = CKEditorField("Item Content", validators=[DataRequired()])
     submit = SubmitField("List Item")
@@ -327,6 +328,7 @@ def add_new_post():
             price=form.price.data,
             make_days=form.make_day.data,
             stock_quantity=form.stock.data,
+            col_size=form.style.data,
             date=date.today().strftime("%B %d, %Y")
         )
         db.session.add(new_post)
@@ -349,6 +351,7 @@ def edit_post(post_id):
         price=post.price,
         make_day=post.make_days,
         stock=post.stock_quantity,
+        style=post.col_size,
         body=post.body
     )
 
@@ -358,9 +361,10 @@ def edit_post(post_id):
         post.img_url = edit_form.img_url.data
         post.author = current_user
         post.author_id = current_user.id
-        post.price = edit_form.price
-        post.stock_quantity = edit_form.stock
-        post.make_day = edit_form.make_day
+        post.price = edit_form.price.data
+        post.stock_quantity = edit_form.stock.data
+        post.make_day = edit_form.make_day.data
+        post.col_size = edit_form.style.data
         post.body = edit_form.body.data
         db.session.commit()
         return redirect(url_for("show_post", post_id=post.id))
@@ -522,6 +526,9 @@ def delete_post(post_id):
     db.session.commit()
     return redirect(url_for('get_all_posts'))
 
-
+#
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=5000)
+
+# if __name__ == "__main__":
+#     app.run(debug=True)
