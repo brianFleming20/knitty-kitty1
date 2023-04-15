@@ -53,7 +53,7 @@ blockquote {
 .section-heading {
   font-size: 36px;
   font-weight: 700;
-  margin-top: 60px;
+  margin-top: 40px;
 }
 
 .section-heading {
@@ -72,19 +72,12 @@ content p {
 }
 
 .center {
-    padding-left: 25rem;
-}
-
-.heading {
-    font-size: 30px;
+    text-align: center;
+    padding-left: 250px;
 }
 
 card {
     padding: 10px 10px 10px 10px;
-}
-
-.arrow {
-    padding-bottom: 100px;
 }
 
 ::-moz-selection {
@@ -201,7 +194,7 @@ img::-moz-selection {
 }
 
 header.masthead {
-  margin-bottom: 100px;
+  margin-bottom: 10px;
 
   background-color: #868e96;
   background-attachment: scroll;
@@ -222,24 +215,19 @@ header.masthead .overlay {
 header a{
     position: absolute;
     width: 65%;
-    padding-top: 60px;
+    padding-top: 50px;
 }
 
 header img {
     position: absolute:
-    padding-top: 80px;
-    width: 100%;
-    Z-index: -1;
-}
-
-.site-heading {
-    position: relative;
-    padding:  0 0 0 400px;
+    padding-top: 30px;
+    width: 80%;
 }
 
 header.masthead .page-heading,
 header.masthead .post-heading,
-header.masthead {
+header.masthead .site-heading {
+  padding: 0 0 0 50px;
   color: white;
 }
 
@@ -247,15 +235,16 @@ header.masthead {
   header.masthead .page-heading,
   header.masthead .post-heading,
   header.masthead .site-heading {
-    padding-bottom: 150px;
+    padding-bottom: 100px;
+
   }
 }
 
 header.masthead .page-heading,
-header.masthead {
+header.masthead .site-heading {
   text-align: center;
-}
 
+}
 
 header.masthead .page-heading h1,
 header.masthead .site-heading h1 {
@@ -266,7 +255,7 @@ header.masthead .site-heading h1 {
 header.masthead .page-heading h1,
 header.masthead .site-heading h1 {
   font-size: 40px;
-  margin-top: 80px;
+  margin-top: 20px;
 }
 
 header.masthead .page-heading .subheading,
@@ -276,7 +265,6 @@ header.masthead .site-heading .subheading {
   line-height: 1.1;
   display: block;
   margin: 10px 0 0;
-  padding-bottom: 100px;
   font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -284,16 +272,6 @@ header.masthead .site-heading .subheading {
   header.masthead .page-heading h1,
   header.masthead .site-heading h1 {
     font-size: 80px;
-  }
-}
-
-@media only screen and (min-width: 400px) {
-  header.masthead .page-heading h1,
-  header.masthead .site-heading h1 {
-    font-size: 70px;
-    font-weight: 300;
-    text-align: left;
-
   }
 }
 
@@ -328,15 +306,8 @@ header.masthead .post-heading .meta a {
   }
   header.masthead .post-heading .subheading {
     font-size: 30px;
-    padding-bottom: 50px;
+    padding-bottom: 150px;
   }
-}
-
-
-@media only screen and (min-width: 350px) {
-    .center {
-        padding: 8rem;
-    }
 }
 
 
@@ -392,5 +363,5 @@ footer .copyright {
   /* padding: 40px 20px 40px 20px; */
   padding: 10% 10% 10% 10%
 }
-}
+
 
