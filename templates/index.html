@@ -29,7 +29,7 @@
               {% if current_user.id == 1: %}
                <a class="btn btn-primary float-left" href="{{url_for('stock_n_orders')}}">Stock & Orders</a>
               <a class="btn btn-primary float-right" href="{{url_for('add_new_post')}}">Add new Item</a>
-              {% else %}
+              {% elif not current_user.is_authenticated: %}
               <span class="center col-md-2">
             <a class="btn btn-outline-primary center" href="{{ url_for('register') }}">Who are you?</a>
                 </span>
