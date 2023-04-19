@@ -48,13 +48,22 @@ def admin_only(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         #If id is not 1 then return abort with 403 error
-        if current_user.is_anonymous:
-            return abort(403)
+
         if current_user.id != 1:
             return abort(403)
         #Otherwise continue with the route function
         return f(*args, **kwargs)
     return decorated_function
+
+
+def no_user(f):
+    @wraps(f)
+    def decortor(*args, **kwargs):
+        if current_user.is_authenticated:
+            return abort(503)
+        return f(*args, **kwargs)
+    return decortor
+
 
 
 @app.before_request
@@ -266,6 +275,7 @@ def logout():
 
 
 @app.route("/post/<int:post_id>", methods=["POST", "GET"])
+@no_user
 def show_post(post_id):
     items = len(user_basket)
     # comment_form = CommentForm()
@@ -385,6 +395,7 @@ def stock_n_orders():
 
 
 @app.route("/success")
+@no_user
 def success():
     global user_basket
     for item in user_basket:
@@ -406,6 +417,7 @@ def delete_row(row):
 
 
 @app.route("/email-order")
+@no_user
 def email():
     items = len(user_basket)
     filepath = "templates/order.txt"
@@ -476,6 +488,7 @@ def address():
 
 
 @app.route("/basket/<int:post_id>/", methods=["POST", "GET"])
+@no_user
 def basket(post_id):
     btn = 0
     postandpack = "£3.50"
