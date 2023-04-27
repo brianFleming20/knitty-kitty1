@@ -35,6 +35,7 @@ MAIL_USERNAME = os.environ.get('USER')
 MAIL_PASSWORD = os.environ.get('APP-PASS')
 KITTY_EMAIL = os.environ.get("EMAIL")
 SECRET_KEY = os.environ.get("PASSWORD")
+SEND_KEY = os.environ.get("SEND-PASS")
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -56,13 +57,13 @@ def admin_only(f):
     return decorated_function
 
 
-def no_user(f):
-    @wraps(f)
-    def decortor(*args, **kwargs):
-        if current_user.is_authenticated:
-            return abort(503)
-        return f(*args, **kwargs)
-    return decortor
+# def no_user(f):
+#     @wraps(f)
+#     def decortor(*args, **kwargs):
+#         if current_user.is_authenticated:
+#             return abort(503)
+#         return f(*args, **kwargs)
+#     return decortor
 
 
 
@@ -200,19 +201,34 @@ class Customise(FlaskForm):
     submit = SubmitField("Submit request")
 
 
+def send_order(subject, body, to):
+    msg = EmailMessage()
+    msg.set_content(body)
+    msg['subject'] = subject
+    msg['to'] = to
+    user = KITTY_EMAIL
+    msg['from'] = user
+    password = SEND_KEY
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(user, password)
+    server.send_message(msg) # <- UPDATED
+    server.quit()
+    return True
+
+
 def send_mail(subject, body, to):
     msg = EmailMessage()
     msg.set_content(body)
     msg['subject'] = subject
     msg['to'] = to
-    msg['cc'] = KITTY_EMAIL
     user = MAIL_USERNAME
     msg['from'] = user
     password = MAIL_PASSWORD
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
     server.login(user, password)
-    server.send_message(msg) # <- UPDATED
+    server.send_message(msg)  # <- UPDATED
     server.quit()
     return True
 
@@ -275,7 +291,6 @@ def logout():
 
 
 @app.route("/post/<int:post_id>", methods=["POST", "GET"])
-@no_user
 def show_post(post_id):
     items = len(user_basket)
     # comment_form = CommentForm()
@@ -313,7 +328,7 @@ def contact():
                 "[NAME]", name).replace("[subject]", subject).replace(
                 "[message]", message).replace("[email]", send_email)
 
-        result = send_mail(subject, new_contents, send_email)
+        result = send_order(subject, new_contents, send_email)
         if result:
             return redirect(url_for('success'))
         else:
@@ -383,7 +398,6 @@ def edit_post(post_id):
 
 
 @app.route("/stock")
-@admin_only
 def stock_n_orders():
     items = len(user_basket)
     posts = KittyPost.query.all()
@@ -395,7 +409,6 @@ def stock_n_orders():
 
 
 @app.route("/success")
-@no_user
 def success():
     global user_basket
     for item in user_basket:
@@ -417,7 +430,6 @@ def delete_row(row):
 
 
 @app.route("/email-order")
-@no_user
 def email():
     items = len(user_basket)
     filepath = "templates/order.txt"
@@ -462,6 +474,7 @@ def email():
             "[address3]", addr3).replace("[post]", post_code).replace("[country]", country).replace(
             "[pandp]", postandpack)
 
+    send_order(subject, new_contents, user_email)
     send_mail(subject, new_contents, user_email)
 
     return render_template("email-order.html", user=name, email=auser, basket=user_basket, pandp=postandpack, total=total, cart=items)
@@ -488,7 +501,6 @@ def address():
 
 
 @app.route("/basket/<int:post_id>/", methods=["POST", "GET"])
-@no_user
 def basket(post_id):
     btn = 0
     postandpack = "£3.50"
