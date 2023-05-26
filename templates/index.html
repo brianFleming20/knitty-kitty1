@@ -41,9 +41,9 @@
           <div class="container-fluid row col-lg-12" id="show-me">
 
             {% for post in all_posts %}
-              <div class="card" style="width:450px;float:left;padding:20px;">
+              <div class="card" style="width:400px;float:left;padding:20px;">
                  <div class="card-body" style="background-color:lightcyan;">
-                     <a class="card-img-top" href="{{ url_for('show_post', post_id=post.id) }}"><img style="width: 350px;" src="{{ post.img_url }}" alt="Card image cap"></a>
+                     <a class="card-img-top" href="{{ url_for('show_post', post_id=post.id) }}"><img style="width: 300px;" src="{{ post.img_url }}" alt="Card image cap"></a>
 
                      <h4 class="card-title">{{ post.title }}
                         {% if current_user.id == 1: %}
