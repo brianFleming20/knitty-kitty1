@@ -24,52 +24,50 @@
 
   <!-- Main Content -->
 
-      <div class="container">
+   <div class="container">
           <div class="clearfix">
               {% if current_user.id == 1: %}
                <a class="btn btn-primary float-left" href="{{url_for('stock_n_orders')}}">Stock & Orders</a>
-              <a class="btn btn-primary float-right" href="{{url_for('add_new_post')}}">Add new Item</a>
+                <a class="btn btn-primary float-right" href="{{url_for('add_new_post')}}">Add new Item</a>
               {% elif not current_user.is_authenticated: %}
-              <span class="center col-md-2">
-            <a class="btn btn-outline-primary center" href="{{ url_for('register') }}">Who are you?</a>
+                <span class="center col-md-2">
+                <a class="btn btn-outline-primary center" href="{{ url_for('register') }}">Who are you?</a>
                 </span>
               {% endif %}
           </div>
 
           <br>
 
-          <div class="row row-cols-1 row-cols-md-3 g-4" id="show-me">
+          <div class="container-fluid row col-lg-12" id="show-me">
 
-         {% for post in all_posts %}
-      <div class="card">
-          <a href="{{ url_for('show_post', post_id=post.id) }}" style="padding: 8px 8px 8px 8px;"><img class="card-img-top" style="width: 300px;" src="{{ post.img_url }}" alt="Card image cap"></a>
-        <span class="actionBox"><small>Select image to customise item size or colour</small></span>
-        <div class="card-body">
-          <h4 class="card-title">{{ post.title }}
-            {% if current_user.id == 1: %}
-            <a href="{{url_for('delete_post', post_id=post.id) }}">✘</a>
-            {% endif %} </h4>
-            <h4>{{ post.price }}</h4>
-          <h6 class="card-text">{{ post.description }}</h6>
-            <span class="card-text">Customise - {{ post.col_size }}</span>
-            <div class="row">
-                {% if current_user.is_anonymous %}
-                <h5><a href="{{ url_for('register') }}">Open an Order</a></h5>
-                {% elif post.stock_quantity > 0 %}
-                <a href="{{ url_for('basket', post_id=post.id) }}" class="btn btn-primary">Select</a>
-                <h5 style="padding-left: 20px;">Add 1 item</h5>
-                {% else %}
-                <h5>Out of Stock</h5>
-                {% endif %}
-            <p class="card-text"><small class="text-muted">Available from {{ post.date }}</small></p>
-            </div>
+            {% for post in all_posts %}
+              <div class="card" style="width:450px;float:left;padding:20px;">
+                 <div class="card-body" style="background-color:lightcyan;">
+                     <a class="card-img-top" href="{{ url_for('show_post', post_id=post.id) }}"><img style="width: 350px;" src="{{ post.img_url }}" alt="Card image cap"></a>
 
+                     <h4 class="card-title">{{ post.title }}
+                        {% if current_user.id == 1: %}
+                        <a href="{{url_for('delete_post', post_id=post.id) }}">✘</a>
+                        {% endif %}
+                      </h4>
+                     <h6 class="card-text">{{ post.description }}</h6>
+                     <h3>{{post.price}}</h3>
+                     <h5>
+                        {% if current_user.is_anonymous %}
+                        <a href="{{ url_for('register') }}">Open an Order</a>
+                        {% endif %}
+                     </h5>
+                        <hr>
+                        {% if post.stock_quantity > 0 %}
+                        <a href="{{ url_for('basket', post_id=post.id) }}" class="card-footer btn btn-primary">Select</a>
+                        {% endif %}
+                 </div>
+              </div>
 
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-      </div>
+            {% endfor %}
+          </div>
+
+   </div>
   <hr>
 
 

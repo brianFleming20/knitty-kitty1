@@ -2,7 +2,7 @@
 {% import "bootstrap/wtf.html" as wtf %}
 
   <!-- Page Header -->
-  <header class="masthead" style="background-image: url('{{post.img_url}}')">
+  <header class="masthead" style="background-image: url('{{post.img_url}}');">
     <div class="overlay"></div>
     <div class="container">
       <div class="row">
@@ -30,10 +30,13 @@
   <article>
     <div class="container">
       <div class="row">
+          <div class="col-lg-3">
+              <img style="width: 200px;" src="{{ post.img_url }}">
+          </div>
         <div class="col-lg-8 col-md-10 mx-auto">
+
             {{ post.body|safe }}
           <hr>
-
             <div class="clearfix">
               {% if current_user.id == 1: %}
             <a class="btn btn-primary float-right" href="{{url_for('edit_post', post_id=post.id)}}">Edit Item</a>
